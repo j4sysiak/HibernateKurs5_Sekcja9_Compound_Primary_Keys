@@ -4,12 +4,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import pl.jaceksysiak.demo.entity.Account;
-import pl.jaceksysiak.demo.entity.User;
-
+import pl.jaceksysiak.demo.entity.Currency;
+import pl.jaceksysiak.demo.entity.ids.CurrencyId;
 
 public class Application_CreateData {
 
@@ -18,11 +14,10 @@ public class Application_CreateData {
 		// create session factory
 		SessionFactory factory = new Configuration()
 								.configure("hibernate.cfg.xml")
-								.addAnnotatedClass(User.class)
-								.addAnnotatedClass(Account.class)
+								.addAnnotatedClass(Currency.class)
 								.buildSessionFactory();
 		
-		// create session
+		// create session 1
 		Session session = factory.getCurrentSession();
 		
 		try {	
@@ -30,23 +25,29 @@ public class Application_CreateData {
 			session.beginTransaction();
 			
 			//Creating the Object 
-			Account account = createNewAccount();
-			Account account2 = createNewAccount();
-			User user = createUser();
-			User user2 = createUser();
+			Currency currency = new Currency();
+			currency.setCountryName("United States");
+			currency.setName("Dollar");
+			currency.setSymbol("$");
 			
-			account.getUsers().add(user);
-			account.getUsers().add(user2);
-			account2.getUsers().add(user);
-			account2.getUsers().add(user2);
+			//Saving the Object to DB		
+			session.persist(currency);
 			
-			
-			//Saving the Object to DB
-			session.save(account);
-			session.save(account2);			
-			 	
 			// commit transaction
 			session.getTransaction().commit();
+			
+			
+			
+			// create session 2
+			Session session2 = factory.getCurrentSession();
+		    session2.beginTransaction();
+		    
+			Currency dbCurrency = (Currency) session2.get(Currency.class, new CurrencyId("Dollar", "United States"));
+			System.out.println(dbCurrency.getName());
+			
+			session2.getTransaction().commit();
+		    
+		    
 		}
 		finally {
 			
@@ -56,30 +57,5 @@ public class Application_CreateData {
 		}
 	}
 	
-	private static User createUser() {
-		User user = new User();
-		user.setBirthDate(new Date());
-		user.setCreatedBy("Kevin Bowersox");
-		user.setCreatedDate(new Date());
-		user.setEmailAddress("test@test.com");
-		user.setFirstName("John");
-		user.setLastName("Doe");
-		user.setLastUpdatedBy("system");
-		user.setLastUpdatedDate(new Date());
-		return user;
-	}
-	
-	private static Account createNewAccount() {
-		Account account = new Account();
-		account.setCloseDate(new Date());
-		account.setOpenDate(new Date());
-		account.setCreatedBy("Kevin Bowersox");
-		account.setInitialBalance(new BigDecimal("50.00"));
-		account.setName("Savings Account");
-		account.setCurrentBalance(new BigDecimal("100.00"));
-		account.setLastUpdatedBy("Kevin Bowersox");
-		account.setLastUpdatedDate(new Date());
-		account.setCreatedDate(new Date());
-		return account;
-	}
+
 	}
